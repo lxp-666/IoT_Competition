@@ -58,7 +58,7 @@ function sourceLabel(source) {
 
 function statusLabel(room, item) {
   if (room.alert_active) return "告警中";
-  if (room.deployment_mode === "real") return item ? "真实在线" : "真实待上报";
+  if (room.deployment_mode === "real") return item ? "真实在线" : "设备未上线";
   if (item) return "演示触发";
   return "演示点位";
 }
@@ -144,7 +144,7 @@ function renderMetrics() {
   const realDevices = latestState?.devices?.filter((device) => device.deployment_mode === "real") || [];
   const primaryTelemetry = realDevices.map((device) => latestState.telemetry?.[device.device_id]).find(Boolean);
   const roomLabel = primaryTelemetry?.room_id ? `${primaryTelemetry.room_id} 寝室` : "真实设备";
-  const measuredAt = primaryTelemetry?.ts ? new Date(primaryTelemetry.ts).toLocaleTimeString("zh-CN", { hour12: false }) : "等待上报";
+  const measuredAt = primaryTelemetry?.ts ? new Date(primaryTelemetry.ts).toLocaleTimeString("zh-CN", { hour12: false }) : "设备未上线";
   const sensorCards = [
     ["烟雾浓度", "smoke_ppm", 0, "ppm", "MQ-2 烟雾传感器"],
     ["环境温度", "temperature", 1, "°C", "DHT11 温度"],
@@ -154,7 +154,7 @@ function renderMetrics() {
   const cards = [
     ...sensorCards.map(([label, key, digits, unit, sensorName]) => {
       const rawValue = primaryTelemetry?.[key];
-      const value = rawValue === undefined || rawValue === null ? "--" : `${Number(rawValue).toFixed(digits)} ${unit}`;
+      const value = `${Number(rawValue ?? 0).toFixed(digits)} ${unit}`;
       return [label, value, `${sensorName} · ${roomLabel} · ${measuredAt}`];
     }),
   ];
@@ -306,7 +306,7 @@ function renderDevices() {
       <span>${fmt(item, "smoke_ppm", 0, "ppm")}</span>
       <span>${fmt(item, "temperature", 1, "C")}</span>
       <span>${fmt(item, "current_rms", 1, "A")}</span>
-      <span class="status ${room.alert_active ? "critical" : room.deployment_mode === "real" ? "online" : "demo"}">${statusLabel(room, item)}</span>
+      <span class="status ${room.alert_active ? "critical" : room.deployment_mode === "real" ? (item ? "online" : "offline") : "demo"}">${statusLabel(room, item)}</span>
     </div>`;
   }).join("");
   els.deviceTable.innerHTML = `<div class="table-row header"><span>设备/点位ID</span><span>房间</span><span>类型</span><span>烟雾</span><span>温度</span><span>电流</span><span>状态</span></div>${rows}`;

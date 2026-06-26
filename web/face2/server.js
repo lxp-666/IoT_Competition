@@ -23,7 +23,7 @@ function makeRooms() {
       building_id: BUILDING_ID,
       device_id: isReal ? REAL_DEVICE_ID : `DEMO-B${BUILDING_ID}-F${floor}-R${room}`,
       deployment_mode: isReal ? "real" : "demo",
-      status: isReal ? "online" : "demo-ready",
+      status: isReal ? "offline" : "demo-ready",
     };
   });
 }
@@ -45,8 +45,8 @@ const state = {
       building_id: BUILDING_ID,
       floor_id: REAL_ROOM_ID.slice(0, 1),
       deployment_mode: "real",
-      status: "online",
-      last_seen: new Date().toISOString(),
+      status: "offline",
+      last_seen: null,
     },
   ],
   telemetry: {},
@@ -104,27 +104,6 @@ function buildGraph() {
 }
 
 const graph = buildGraph();
-
-function initTelemetry() {
-  const now = new Date().toISOString();
-  state.telemetry[REAL_DEVICE_ID] = {
-    device_id: REAL_DEVICE_ID,
-    room_id: REAL_ROOM_ID,
-    building_id: BUILDING_ID,
-    floor_id: REAL_ROOM_ID.slice(0, 1),
-    deployment_mode: "real",
-    source: "real",
-    smoke_ppm: 32,
-    temperature: 26.2,
-    humidity: 55.0,
-    temp_rise_rate: 0.2,
-    flame_intensity: 0,
-    current_rms: 0.9,
-    appliance_type: "normal",
-    fire_level: 0,
-    ts: now,
-  };
-}
 
 function roomById(roomId) {
   return rooms.find((room) => room.room_id === String(roomId));
@@ -477,8 +456,6 @@ const server = http.createServer((req, res) => {
   if (req.url.startsWith("/api/")) handleApi(req, res);
   else serveStatic(req, res);
 });
-
-initTelemetry();
 
 if (require.main === module) {
   server.listen(PORT, HOST, () => {
