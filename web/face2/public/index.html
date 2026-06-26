@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>寓安芯 OneNET 物联网平台</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">寓</span>
+        <div>
+          <strong>寓安芯</strong>
+          <small>OneNET IoT Console</small>
+        </div>
+      </div>
+      <nav aria-label="主导航">
+        <a href="#overview" class="active" data-view-link="overview">总览</a>
+        <a href="#devices" data-view-link="devices">设备</a>
+        <a href="#alerts" data-view-link="alerts">告警</a>
+        <a href="#escape" data-view-link="escape">逃生路径</a>
+        <a href="#integration" data-view-link="integration">接入配置</a>
+      </nav>
+      <div class="connection">
+        <span class="dot"></span>
+        <span>本地原型运行中</span>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="viewKicker">总览</p>
+          <h1 id="viewTitle">高校寝室用火安全多模态监测平台</h1>
+          <p id="viewSubtitle">1 台真实 ESP32 样机验证采集链路，15 个房间点位展示系统部署后的联动能力。</p>
+        </div>
+        <div class="actions" aria-label="演示场景控制">
+          <select id="simulateRoom" aria-label="选择演示房间"></select>
+          <button id="simulateSmoke">烟雾预警</button>
+          <button id="simulateFire" class="danger">明火告警</button>
+          <button id="simulateAppliance">违规电器</button>
+        </div>
+      </header>
+
+      <section id="overview" class="view active" data-view="overview">
+        <div class="time-strip">
+          <div>
+            <span>当前时间</span>
+            <strong id="currentTime">--:--:--</strong>
+          </div>
+          <small id="currentDate">正在同步本地时间</small>
+        </div>
+        <div class="demo-note">
+          <strong>现场演示说明</strong>
+          <span>绿色房间为真实设备在线上报，其余房间为演示点位。演示点位用于展示横向部署后的告警、推送和逃生路线联动，不伪装成已部署硬件。</span>
+        </div>
+        <div id="overviewMetrics" class="metrics"></div>
+        <div class="grid-two">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>实时环境曲线</h2>
+              <div class="chart-controls">
+                <select id="chartFloor" aria-label="选择曲线楼层">
+                  <option value="1">1 层</option>
+                  <option value="2">2 层</option>
+                  <option value="3" selected>3 层</option>
+                </select>
+                <select id="chartDevice" aria-label="选择曲线设备"></select>
+              </div>
+            </div>
+            <canvas id="telemetryChart" width="900" height="340" aria-label="实时环境曲线"></canvas>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h2>楼层态势</h2>
+              <select id="overviewFloor" aria-label="选择楼层态势">
+                <option value="1">1 层</option>
+                <option value="2">2 层</option>
+                <option value="3" selected>3 层</option>
+              </select>
+            </div>
+            <div id="floorMap" class="floor-map"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="devices" class="view" data-view="devices">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>设备接入与命令下发</h2>
+            <div class="command-row">
+              <select id="commandDevice" aria-label="选择真实设备"></select>
+              <button id="sendBuzzer">蜂鸣器</button>
+              <button id="sendLed">告警灯</button>
+              <button id="sendThreshold">同步阈值</button>
+            </div>
+          </div>
+          <div id="deviceTable" class="table"></div>
+        </div>
+      </section>
+
+      <section id="alerts" class="view" data-view="alerts">
+        <div class="grid-two">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>告警记录</h2>
+              <span id="alertCount" class="badge">0 active</span>
+            </div>
+            <div id="alertList" class="list"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h2>消息推送队列</h2>
+              <span class="badge">prototype-push</span>
+            </div>
+            <div id="notificationList" class="list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="escape" class="view" data-view="escape">
+        <div class="escape-grid">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>逃生路线地图</h2>
+              <select id="escapeFloor" aria-label="选择逃生楼层">
+                <option value="1">1 层</option>
+                <option value="2">2 层</option>
+                <option value="3" selected>3 层</option>
+              </select>
+            </div>
+            <div id="escapeMap" class="floor-map escape-map"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>学生端逃生指引</h2>
+              <select id="escapeRoom" aria-label="选择逃生寝室"></select>
+            </div>
+            <div class="student-card">
+              <div>
+                <span class="student-kicker" id="studentKicker">推送至 302 寝室学生端</span>
+                <h3 id="studentTitle">等待火情确认</h3>
+                <p id="studentAdvice">系统会在明火或烟雾预警时生成避险路线，并同步宿管端。</p>
+                <p id="routeSummary" class="route-summary"></p>
+              </div>
+              <ol id="routeSteps"></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="integration" class="view" data-view="integration">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>OneNET 接入配置</h2>
+            <span class="badge">MQTT / TLS / Webhook</span>
+          </div>
+          <div class="integration-grid">
+            <pre id="modelPreview"></pre>
+            <div class="guide">
+              <h3>平台侧配置顺序</h3>
+              <ol>
+                <li>OneNET Studio 新建产品，接入协议选择 MQTT。</li>
+                <li>按左侧物模型创建属性、事件和命令。</li>
+                <li>当前样机绑定 302 寝室；量产部署时为每个寝室创建设备。</li>
+                <li>规则引擎将告警事件转发到 <code>/api/onenet/webhook</code>。</li>
+                <li>ESP32 使用 MQTT/TLS 上报属性，并订阅命令主题。</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js?v=single-device-demo"></script>
+  </body>
+</html>

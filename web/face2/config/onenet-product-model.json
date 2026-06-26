@@ -1,0 +1,33 @@
+{
+  "product_name": "寓安芯 寝室安全终端",
+  "access_protocol": "MQTT",
+  "description": "高校寝室用火安全终端，支持烟雾、火焰、温湿度、电流和告警联动上报。",
+  "properties": [
+    { "identifier": "smoke_ppm", "name": "烟雾浓度", "data_type": "float", "unit": "ppm", "access": "report" },
+    { "identifier": "temperature", "name": "环境温度", "data_type": "float", "unit": "°C", "access": "report" },
+    { "identifier": "temp_rise_rate", "name": "温升速率", "data_type": "float", "unit": "°C/min", "access": "report" },
+    { "identifier": "flame_intensity", "name": "火焰光谱强度", "data_type": "float", "unit": "%", "access": "report" },
+    { "identifier": "current_rms", "name": "电流有效值", "data_type": "float", "unit": "A", "access": "report" },
+    { "identifier": "appliance_type", "name": "电器类型", "data_type": "string", "access": "report" },
+    { "identifier": "fire_level", "name": "火情等级", "data_type": "enum", "access": "report", "enum": { "0": "无火", "1": "烟雾预警", "2": "明火告警" } },
+    { "identifier": "room_id", "name": "寝室号", "data_type": "string", "access": "report" },
+    { "identifier": "building_id", "name": "楼栋号", "data_type": "string", "access": "report" },
+    { "identifier": "floor_id", "name": "楼层号", "data_type": "string", "access": "report" }
+  ],
+  "events": [
+    { "identifier": "fire_warning", "name": "烟雾预警", "severity": "warning" },
+    { "identifier": "fire_alarm", "name": "明火告警", "severity": "critical" },
+    { "identifier": "illegal_appliance_alarm", "name": "违规电器告警", "severity": "notice" },
+    { "identifier": "device_offline", "name": "设备离线", "severity": "warning" }
+  ],
+  "commands": [
+    { "identifier": "set_thresholds", "name": "阈值配置", "params": ["smoke_ppm", "temperature", "temp_rise_rate", "current_rms"] },
+    { "identifier": "buzzer_control", "name": "蜂鸣器控制", "params": ["enabled", "duration_ms"] },
+    { "identifier": "led_control", "name": "告警灯控制", "params": ["color", "mode"] },
+    { "identifier": "ota_update", "name": "固件升级", "params": ["url", "version"] }
+  ],
+  "rule_engine": {
+    "webhook": "http://YOUR_SERVER_HOST/api/onenet/webhook",
+    "forward_events": ["fire_warning", "fire_alarm", "illegal_appliance_alarm", "device_offline"]
+  }
+}
