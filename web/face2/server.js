@@ -359,8 +359,9 @@ async function handleApi(req, res) {
     if (req.method === "POST" && pathname === "/api/onenet/webhook") {
       const event = normalizeOneNetEvent(await readBody(req));
       const telemetry = normalizeTelemetry(event.telemetry, "real");
-      const alert = createAlert(event.type, telemetry, "real");
-      sendJson(res, 201, { received: true, telemetry, alert });
+      const explicitAlertTypes = new Set(["fire_warning", "fire_alarm", "illegal_appliance_alarm", "device_offline"]);
+      const alerts = explicitAlertTypes.has(event.type) ? [createAlert(event.type, telemetry, "real")] : alertsForTelemetry(telemetry, "real");
+      sendJson(res, 201, { received: true, telemetry, alerts, alert: alerts[0] || null });
       return;
     }
 
@@ -418,24 +419,44 @@ function alertsForTelemetry(telemetry, source) {
   return alerts;
 }
 
+function parseMaybeJson(value) {
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+}
+
+function unwrapOneNetValue(value) {
+  if (value && typeof value === "object" && Object.prototype.hasOwnProperty.call(value, "value")) {
+    return value.value;
+  }
+  return value;
+}
+
 function normalizeOneNetEvent(body) {
-  const eventType = body.event || body.type || body.identifier || "fire_warning";
-  const payload = body.data || body.payload || body.properties || body;
+  const envelope = parseMaybeJson(body.msg) || body;
+  const payload = parseMaybeJson(envelope.data || envelope.payload || envelope.properties || envelope.params) || envelope;
+  const params = payload.params || envelope.params || payload;
+  const readValue = (key) => unwrapOneNetValue(params[key] ?? payload[key] ?? envelope[key]);
+  const roomId = readValue("room_id") || REAL_ROOM_ID;
+  const eventType = envelope.event || envelope.type || envelope.identifier || payload.event || payload.type || payload.identifier || null;
   return {
     type: eventType,
     telemetry: {
-      device_id: body.device_id || body.deviceName || payload.device_id || payload.deviceName || REAL_DEVICE_ID,
-      room_id: payload.room_id || REAL_ROOM_ID,
-      building_id: payload.building_id || BUILDING_ID,
-      floor_id: payload.floor_id || String(payload.room_id || REAL_ROOM_ID).slice(0, 1),
-      smoke_ppm: payload.smoke_ppm,
-      temperature: payload.temperature,
-      humidity: payload.humidity,
-      temp_rise_rate: payload.temp_rise_rate,
-      flame_intensity: payload.flame_intensity,
-      current_rms: payload.current_rms,
-      appliance_type: payload.appliance_type,
-      fire_level: payload.fire_level,
+      device_id: envelope.device_id || envelope.deviceName || envelope.deviceId || payload.device_id || payload.deviceName || payload.deviceId || REAL_DEVICE_ID,
+      room_id: roomId,
+      building_id: readValue("building_id") || BUILDING_ID,
+      floor_id: readValue("floor_id") || String(roomId).slice(0, 1),
+      smoke_ppm: readValue("smoke_ppm"),
+      temperature: readValue("temperature"),
+      humidity: readValue("humidity"),
+      temp_rise_rate: readValue("temp_rise_rate"),
+      flame_intensity: readValue("flame_intensity"),
+      current_rms: readValue("current_rms"),
+      appliance_type: readValue("appliance_type"),
+      fire_level: readValue("fire_level"),
     },
   };
 }
