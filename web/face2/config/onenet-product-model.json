@@ -5,6 +5,7 @@
   "properties": [
     { "identifier": "smoke_ppm", "name": "烟雾浓度", "data_type": "float", "unit": "ppm", "access": "report" },
     { "identifier": "temperature", "name": "环境温度", "data_type": "float", "unit": "°C", "access": "report" },
+    { "identifier": "humidity", "name": "环境湿度", "data_type": "float", "unit": "%", "access": "report" },
     { "identifier": "temp_rise_rate", "name": "温升速率", "data_type": "float", "unit": "°C/min", "access": "report" },
     { "identifier": "flame_intensity", "name": "火焰光谱强度", "data_type": "float", "unit": "%", "access": "report" },
     { "identifier": "current_rms", "name": "电流有效值", "data_type": "float", "unit": "A", "access": "report" },

@@ -141,16 +141,22 @@ function renderSelectors() {
 }
 
 function renderMetrics() {
-  const rooms = allRooms();
   const realDevices = latestState?.devices?.filter((device) => device.deployment_mode === "real") || [];
-  const activeAlerts = (latestState.alerts || []).filter((alert) => alert.status === "active");
-  const realTelemetry = realDevices.map((device) => latestState.telemetry?.[device.device_id]).filter(Boolean);
-  const maxSmoke = realTelemetry.length ? Math.max(...realTelemetry.map((item) => Number(item.smoke_ppm || 0))) : null;
+  const primaryTelemetry = realDevices.map((device) => latestState.telemetry?.[device.device_id]).find(Boolean);
+  const roomLabel = primaryTelemetry?.room_id ? `${primaryTelemetry.room_id} 寝室` : "真实设备";
+  const measuredAt = primaryTelemetry?.ts ? new Date(primaryTelemetry.ts).toLocaleTimeString("zh-CN", { hour12: false }) : "等待上报";
+  const sensorCards = [
+    ["烟雾浓度", "smoke_ppm", 0, "ppm", "MQ-2 烟雾传感器"],
+    ["环境温度", "temperature", 1, "°C", "DHT11 温度"],
+    ["环境湿度", "humidity", 1, "%", "DHT11 湿度"],
+    ["火焰强度", "flame_intensity", 0, "%", "火焰传感器"],
+  ];
   const cards = [
-    ["真实设备", `${realDevices.length} 台`, realDevices.map((device) => `${device.room_id} 寝室在线`).join(" / ") || "等待接入"],
-    ["覆盖模型", `${rooms.length} 间`, "3 层 × 每层 5 间"],
-    ["当前告警", activeAlerts.length, `${activeAlerts.filter((alert) => alert.source === "real").length} 个真实 / ${activeAlerts.filter((alert) => alert.source === "demo").length} 个演示`],
-    ["OneNET 链路", maxSmoke === null ? "待上报" : "正常", maxSmoke === null ? "等待真实设备数据" : `最高烟雾 ${maxSmoke.toFixed(0)} ppm`],
+    ...sensorCards.map(([label, key, digits, unit, sensorName]) => {
+      const rawValue = primaryTelemetry?.[key];
+      const value = rawValue === undefined || rawValue === null ? "--" : `${Number(rawValue).toFixed(digits)} ${unit}`;
+      return [label, value, `${sensorName} · ${roomLabel} · ${measuredAt}`];
+    }),
   ];
   els.metrics.innerHTML = cards.map(([label, value, hint]) => `<div class="metric"><span>${label}</span><strong>${value}</strong><small>${hint}</small></div>`).join("");
 }

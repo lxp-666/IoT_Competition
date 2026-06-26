@@ -116,6 +116,7 @@ function initTelemetry() {
     source: "real",
     smoke_ppm: 32,
     temperature: 26.2,
+    humidity: 55.0,
     temp_rise_rate: 0.2,
     flame_intensity: 0,
     current_rms: 0.9,
@@ -170,6 +171,7 @@ function normalizeTelemetry(raw = {}, source = "real") {
     source,
     smoke_ppm: Number(raw.smoke_ppm ?? current.smoke_ppm ?? 0),
     temperature: Number(raw.temperature ?? current.temperature ?? 0),
+    humidity: Number(raw.humidity ?? current.humidity ?? 0),
     temp_rise_rate: Number(raw.temp_rise_rate ?? current.temp_rise_rate ?? 0),
     flame_intensity: Number(raw.flame_intensity ?? current.flame_intensity ?? 0),
     current_rms: Number(raw.current_rms ?? current.current_rms ?? 0),
@@ -449,6 +451,7 @@ function normalizeOneNetEvent(body) {
       floor_id: payload.floor_id || String(payload.room_id || REAL_ROOM_ID).slice(0, 1),
       smoke_ppm: payload.smoke_ppm,
       temperature: payload.temperature,
+      humidity: payload.humidity,
       temp_rise_rate: payload.temp_rise_rate,
       flame_intensity: payload.flame_intensity,
       current_rms: payload.current_rms,
@@ -462,12 +465,12 @@ function buildScenarioTelemetry(scenario, roomId) {
   const room = roomById(roomId) || roomById(REAL_ROOM_ID);
   const base = state.telemetry[room.device_id] || {};
   if (scenario === "fire_alarm") {
-    return { ...base, room_id: room.room_id, smoke_ppm: 680, temperature: 68, temp_rise_rate: 12, flame_intensity: 88, current_rms: 2.1, appliance_type: "normal", fire_level: 2 };
+    return { ...base, room_id: room.room_id, smoke_ppm: 680, temperature: 68, humidity: 42, temp_rise_rate: 12, flame_intensity: 88, current_rms: 2.1, appliance_type: "normal", fire_level: 2 };
   }
   if (scenario === "illegal_appliance") {
-    return { ...base, room_id: room.room_id, smoke_ppm: 45, temperature: 27, temp_rise_rate: 0.8, flame_intensity: 0, current_rms: 7.8, appliance_type: "热得快", fire_level: 0 };
+    return { ...base, room_id: room.room_id, smoke_ppm: 45, temperature: 27, humidity: 58, temp_rise_rate: 0.8, flame_intensity: 0, current_rms: 7.8, appliance_type: "热得快", fire_level: 0 };
   }
-  return { ...base, room_id: room.room_id, smoke_ppm: 410, temperature: 34, temp_rise_rate: 3.2, flame_intensity: 12, current_rms: 1.7, appliance_type: "normal", fire_level: 1 };
+  return { ...base, room_id: room.room_id, smoke_ppm: 410, temperature: 34, humidity: 50, temp_rise_rate: 3.2, flame_intensity: 12, current_rms: 1.7, appliance_type: "normal", fire_level: 1 };
 }
 
 const server = http.createServer((req, res) => {

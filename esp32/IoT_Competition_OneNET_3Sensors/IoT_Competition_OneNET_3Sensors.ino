@@ -533,6 +533,7 @@ void publishTelemetry() {
   printSensorSnapshot(sensors);
 
   const float temperature = sensors.dht11.valid ? sensors.dht11.temperatureCelsius : lastValidTemperature;
+  const float humidity = sensors.dht11.valid ? sensors.dht11.humidityPercent : 0.0f;
   const float currentRms = sensors.suiValid ? sensors.sui.currentAmps : 0.0f;
 
   StaticJsonDocument<1536> doc;
@@ -542,6 +543,7 @@ void publishTelemetry() {
   JsonObject params = doc.createNestedObject("params");
   params["smoke_ppm"]["value"] = sensors.smoke.densityPercent;
   params["temperature"]["value"] = temperature;
+  params["humidity"]["value"] = humidity;
   params["temp_rise_rate"]["value"] = sensors.tempRiseRate;
   params["flame_intensity"]["value"] = sensors.flame.intensityPercent;
   params["current_rms"]["value"] = currentRms;
